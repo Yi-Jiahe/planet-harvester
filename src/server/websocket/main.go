@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Yi-Jiahe/planet-harvester/src/server/game"
 	"github.com/gorilla/websocket"
 )
 
@@ -26,17 +27,17 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-
 	defer c.Close()
 
 	for {
-		mt, message, err := c.ReadMessage()
+		_, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 		}
 		log.Printf("recv: %s", message)
+		game.ChopWood()
 
-		err = c.WriteMessage(mt, message)
+		err = c.WriteMessage(1, []byte(game.ShowResources()))
 		if err != nil {
 			log.Println("write:", err)
 		}
