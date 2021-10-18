@@ -27,7 +27,10 @@ func main() {
 func echo(w http.ResponseWriter, r *http.Request) {
 	userId := game.NewGame()
 
-	c, err := upgrader.Upgrade(w, r, nil)
+	h := http.Header{
+		"user-id": {userId},
+	}
+	c, err := upgrader.Upgrade(w, r, h)
 	if err != nil {
 		log.Println(err)
 	}
