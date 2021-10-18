@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -23,11 +24,18 @@ func main() {
 }
 
 func echo(w http.ResponseWriter, r *http.Request) {
+	userId := game.NewGame()
+
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 	}
 	defer c.Close()
+
+	err = c.WriteMessage(1, []byte(fmt.Sprintf("User Id: %s", userId)))
+	if err != nil {
+		log.Println("write:", err)
+	}
 
 	for {
 		_, message, err := c.ReadMessage()
@@ -35,9 +43,9 @@ func echo(w http.ResponseWriter, r *http.Request) {
 			log.Println("read:", err)
 		}
 		log.Printf("recv: %s", message)
-		game.ChopWood()
+		game.ChopWood(userId)
 
-		err = c.WriteMessage(1, []byte(game.ShowResources()))
+		err = c.WriteMessage(1, []byte(game.ShowResources(userId)))
 		if err != nil {
 			log.Println("write:", err)
 		}
