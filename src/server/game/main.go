@@ -30,6 +30,14 @@ func ChopWood(userId string) {
 	players[userId].Storage[models.Wood] += 1
 }
 
+func MineIron(userId string) {
+	players[userId].Storage[models.Iron] += 1
+}
+
+func MineCoal(userId string) {
+	players[userId].Storage[models.Coal] += 1
+}
+
 func ShowResources(userId string) string {
 	s := ""
 	for resource, amount := range players[userId].Storage {

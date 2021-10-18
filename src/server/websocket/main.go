@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/Yi-Jiahe/planet-harvester/src/server/game"
 	"github.com/gorilla/websocket"
@@ -43,7 +44,15 @@ func echo(w http.ResponseWriter, r *http.Request) {
 			log.Println("read:", err)
 		}
 		log.Printf("recv: %s", message)
-		game.ChopWood(userId)
+
+		switch strings.ToLower(string(message)) {
+		case "chop wood":
+			game.ChopWood(userId)
+		case "mine iron":
+			game.MineIron(userId)
+		case "mine coal":
+			game.MineCoal(userId)
+		}
 
 		err = c.WriteMessage(1, []byte(game.ShowResources(userId)))
 		if err != nil {
