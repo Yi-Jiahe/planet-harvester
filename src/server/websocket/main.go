@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/Yi-Jiahe/planet-harvester/src/server/game"
 	"github.com/gorilla/websocket"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var upgrader = websocket.Upgrader{}
@@ -26,7 +28,9 @@ func init() {
 
 func main() {
 	http.HandleFunc("/socket", handleSocket)
-	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+	hostname := os.Getenv("HOST")
+	log.Println(hostname)
+	log.Fatal(http.ListenAndServe(hostname, nil))
 }
 
 func handleSocket(w http.ResponseWriter, r *http.Request) {
