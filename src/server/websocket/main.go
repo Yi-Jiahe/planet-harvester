@@ -12,6 +12,11 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
+type app struct {
+	c      *websocket.Conn
+	userId string
+}
+
 func init() {
 	upgrader.CheckOrigin = func(r *http.Request) bool {
 		// TODO: Implement an acutal check
@@ -20,11 +25,11 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/echo", echo)
+	http.HandleFunc("/socket", handleSocket)
 	log.Fatal(http.ListenAndServe("localhost:8080", nil))
 }
 
-func echo(w http.ResponseWriter, r *http.Request) {
+func handleSocket(w http.ResponseWriter, r *http.Request) {
 	userId := game.NewGame()
 
 	h := http.Header{
@@ -35,6 +40,11 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	defer c.Close()
+
+	a := app{
+		userId: userId,
+		c:      c,
+	}
 
 	err = c.WriteMessage(1, []byte(fmt.Sprintf("User Id: %s", userId)))
 	if err != nil {
@@ -51,15 +61,20 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		switch strings.ToLower(string(message)) {
 		case "chop wood":
 			game.ChopWood(userId)
+			a.returnResourceValues()
 		case "mine iron":
 			game.MineIron(userId)
+			a.returnResourceValues()
 		case "mine coal":
 			game.MineCoal(userId)
+			a.returnResourceValues()
 		}
+	}
+}
 
-		err = c.WriteMessage(1, []byte(game.ShowResources(userId)))
-		if err != nil {
-			log.Println("write:", err)
-		}
+func (a *app) returnResourceValues() {
+	err := a.c.WriteMessage(1, []byte(game.ShowResources(a.userId)))
+	if err != nil {
+		log.Println("write:", err)
 	}
 }
