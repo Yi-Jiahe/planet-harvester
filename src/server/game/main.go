@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Yi-Jiahe/planet-harvester/src/server/models"
 
@@ -11,6 +12,18 @@ import (
 var (
 	players = map[string]models.Player{}
 )
+
+func init() {
+	// Start game loop
+	ticker := time.NewTicker(1 * time.Second)
+
+	go func() {
+		for {
+			<-ticker.C
+
+		}
+	}()
+}
 
 func NewGame() string {
 	userId := xid.New().String()
