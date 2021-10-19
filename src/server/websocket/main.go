@@ -37,7 +37,9 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 	userId := game.NewGame()
 
 	h := http.Header{
-		"user-id": {userId},
+		"Set-Cookie": {
+			fmt.Sprintf("userId=%s", userId),
+		},
 	}
 	c, err := upgrader.Upgrade(w, r, h)
 	if err != nil {
