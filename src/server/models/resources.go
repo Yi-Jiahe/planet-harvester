@@ -23,3 +23,11 @@ var (
 		Description: "",
 	}
 )
+
+func CreateTree() ResourceNode {
+	tree := ResourceNode{
+		Resource: Wood,
+	}
+
+	return tree
+}

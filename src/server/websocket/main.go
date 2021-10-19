@@ -72,6 +72,12 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 		case "mine coal":
 			game.MineCoal(userId)
 			a.returnResourceValues()
+		case "place logger":
+			game.PlaceLogger(userId)
+			err := a.c.WriteMessage(1, []byte("Logger Placed"))
+			if err != nil {
+				log.Println("write:", err)
+			}
 		}
 	}
 }
