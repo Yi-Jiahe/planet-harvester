@@ -17,7 +17,6 @@ var (
 )
 
 func init() {
-
 	// Start game loop
 	ticker := time.NewTicker(1 * time.Second)
 
@@ -45,6 +44,13 @@ func NewGame() string {
 	}
 
 	return userId
+}
+
+func PlayerExists(userId string) bool {
+	if _, ok := players[userId]; ok {
+		return true
+	}
+	return false
 }
 
 func ChopWood(userId string) {

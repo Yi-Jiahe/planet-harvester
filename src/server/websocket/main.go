@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -27,32 +26,46 @@ func init() {
 }
 
 func main() {
+	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/socket", handleSocket)
 	hostname := os.Getenv("HOST")
 	log.Println(hostname)
 	log.Fatal(http.ListenAndServe(hostname, nil))
 }
 
-func handleSocket(w http.ResponseWriter, r *http.Request) {
-	userId := game.NewGame()
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	// TODO: Figure out what to put here
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "User-Id")
+	w.Header().Set("Access-Control-Expose-Headers", "User-Id")
 
-	h := http.Header{
-		"Set-Cookie": {
-			fmt.Sprintf("userId=%s", userId),
-		},
+	userId := r.Header.Get("User-Id")
+	if userId == "" {
+		userId = game.NewGame()
+
+		w.Header().Set("User-Id", userId)
+		return
 	}
-	c, err := upgrader.Upgrade(w, r, h)
+	if game.PlayerExists(userId) {
+		// Send a positive response?
+	} else {
+		userId = game.NewGame()
+
+		w.Header().Set("User-Id", userId)
+		return
+	}
+}
+
+func handleSocket(w http.ResponseWriter, r *http.Request) {
+	var userId string
+
+	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 	}
 	defer c.Close()
 
-	a := app{
-		userId: userId,
-		c:      c,
-	}
-
-	err = c.WriteMessage(1, []byte(fmt.Sprintf("User Id: %s", userId)))
+	err = c.WriteMessage(1, []byte("Connected"))
 	if err != nil {
 		log.Println("write:", err)
 	}
@@ -64,29 +77,43 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("recv: %s", message)
 
+		if userId == "" {
+			if strings.HasPrefix(string(message), "userId") {
+				userId = strings.Split(string(message), ":")[1]
+			} else {
+				err := c.WriteMessage(1, []byte("Please provide login"))
+				if err != nil {
+					log.Println("write:", err)
+				}
+			}
+			continue
+		}
+
 		switch strings.ToLower(string(message)) {
 		case "chop wood":
 			game.ChopWood(userId)
-			a.returnResourceValues()
+			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
+			if err != nil {
+				log.Println("write:", err)
+			}
 		case "mine iron":
 			game.MineIron(userId)
-			a.returnResourceValues()
+			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
+			if err != nil {
+				log.Println("write:", err)
+			}
 		case "mine coal":
 			game.MineCoal(userId)
-			a.returnResourceValues()
+			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
+			if err != nil {
+				log.Println("write:", err)
+			}
 		case "place logger":
 			game.PlaceLogger(userId)
-			err := a.c.WriteMessage(1, []byte("Logger Placed"))
+			err := c.WriteMessage(1, []byte("Logger Placed"))
 			if err != nil {
 				log.Println("write:", err)
 			}
 		}
-	}
-}
-
-func (a *app) returnResourceValues() {
-	err := a.c.WriteMessage(1, []byte(game.ShowResources(a.userId)))
-	if err != nil {
-		log.Println("write:", err)
 	}
 }

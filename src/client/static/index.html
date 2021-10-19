@@ -7,11 +7,31 @@ window.addEventListener("load", function(evt) {
     var output = document.getElementById("output");
     var input = document.getElementById("input");
     var ws;
+    var userId;
     var print = function(message) {
         var d = document.createElement("div");
         d.textContent = message;
         output.appendChild(d);
         output.scroll(0, output.scrollHeight);
+    };
+    document.getElementById("login").onclick = function(evt) {
+        const xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() { 
+            if (this.readyState == 4 && this.status == 200) {
+                var newUser = this.getResponseHeader("User-Id");
+                if (newUser) {
+                    console.log("New session created");
+                    userId = newUser;
+                }
+            }
+        }
+        const url = "http://localhost:8080/login";
+        xmlHttp.open("GET", url, true);
+        if (userId != null) {
+            xmlHttp.setRequestHeader("User-Id", userId);
+        }
+        xmlHttp.send();
+        return false;
     };
     document.getElementById("open").onclick = function(evt) {
         if (ws) {
@@ -19,6 +39,8 @@ window.addEventListener("load", function(evt) {
         }
         ws = new WebSocket("ws://localhost:8080/socket");
         ws.onopen = function(evt) {
+            ws.send("userId:" + userId);
+
             print("OPEN");
         }
         ws.onclose = function(evt) {
@@ -52,20 +74,22 @@ window.addEventListener("load", function(evt) {
 </script>
 </head>
 <body>
-<table>
-<tr><td valign="top" width="50%">
-<p>Click "Open" to create a connection to the server, 
-"Send" to send a message to the server and "Close" to close the connection. 
-You can change the message and send multiple times.
-<p>
-<form>
-<button id="open">Open</button>
-<button id="close">Close</button>
-<p><input id="input" type="text" value="Hello world!">
-<button id="send">Send</button>
-</form>
-</td><td valign="top" width="50%">
-<div id="output" style="max-height: 70vh;overflow-y: scroll;"></div>
-</td></tr></table>
+    <table>
+        <tr><td valign="top" width="50%">
+        <p>Click "Open" to create a connection to the server, 
+        "Send" to send a message to the server and "Close" to close the connection. 
+        You can change the message and send multiple times.
+        <p>
+        <form>
+            <button id="login">Login</button>
+            <button id="open">Open</button>
+            <button id="close">Close</button>
+            <p><input id="input" type="text" value="Hello world!">
+            <button id="send">Send</button>
+        </form>
+        </td><td valign="top" width="50%">
+        <div id="output" style="max-height: 70vh;overflow-y: scroll;"></div>
+        </td></tr>
+    </table>
 </body>
 </html>
