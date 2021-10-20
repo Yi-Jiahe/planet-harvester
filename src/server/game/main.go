@@ -64,9 +64,14 @@ func MineCoal(userId string) {
 	players[userId].Storage[models.Coal] += 1
 }
 
-func PlaceLogger(userId string) {
-	logger := models.NewLogger(players[userId], &resourceNodes[0])
+func PlaceLogger(userId string) error {
+	logger, err := models.NewExtractor("logger", players[userId], &resourceNodes[0])
+	if err != nil {
+		return err
+	}
+
 	extractors = append(extractors, logger)
+	return nil
 }
 
 func ShowResources(userId string) string {
