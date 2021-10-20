@@ -12,8 +12,9 @@ import (
 var (
 	players       = map[string]*models.Player{}
 	resourceNodes = []models.ResourceNode{
-		models.CreateTree(),
+		models.NewTree(),
 	}
+	extractors = []models.Extractor{}
 )
 
 func init() {
@@ -23,16 +24,14 @@ func init() {
 	go func() {
 		for {
 			<-ticker.C
-			for _, player := range players {
-				for _, extractor := range player.Extractors {
-					extractor.Extract()
-				}
+			for _, extractor := range extractors {
+				extractor.Extract()
 			}
 		}
 	}()
 }
 
-func NewGame() string {
+func NewPlayer() string {
 	userId := xid.New().String()
 
 	players[userId] = &models.Player{
@@ -66,9 +65,8 @@ func MineCoal(userId string) {
 }
 
 func PlaceLogger(userId string) {
-	logger := models.Logger{}
-
-	logger.Place(players[userId], &resourceNodes[0])
+	logger := models.NewLogger(players[userId], &resourceNodes[0])
+	extractors = append(extractors, logger)
 }
 
 func ShowResources(userId string) string {

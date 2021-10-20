@@ -24,7 +24,7 @@ var (
 	}
 )
 
-func CreateTree() ResourceNode {
+func NewTree() ResourceNode {
 	tree := ResourceNode{
 		Resource: Wood,
 	}

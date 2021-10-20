@@ -41,7 +41,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	userId := r.Header.Get("User-Id")
 	if userId == "" {
-		userId = game.NewGame()
+		userId = game.NewPlayer()
 
 		w.Header().Set("User-Id", userId)
 		return
@@ -49,7 +49,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	if game.PlayerExists(userId) {
 		// Send a positive response?
 	} else {
-		userId = game.NewGame()
+		userId = game.NewPlayer()
 
 		w.Header().Set("User-Id", userId)
 		return

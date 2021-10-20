@@ -1,6 +1,5 @@
 package models
 
 type Player struct {
-	Storage    map[Resource]float64
-	Extractors []Extractor
+	Storage map[Resource]float64
 }
