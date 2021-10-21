@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Yi-Jiahe/planet-harvester/src/server/game"
 	"github.com/gorilla/websocket"
@@ -70,6 +71,21 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 		log.Println("write:", err)
 	}
 
+	// Send updates to client
+	ticker := time.NewTicker(1 * time.Second)
+	go func() {
+		for {
+			<-ticker.C
+			if userId == "" {
+				continue
+			}
+			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
+			if err != nil {
+				log.Println("write:", err)
+			}
+		}
+	}()
+
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
@@ -92,22 +108,10 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 		switch strings.ToLower(string(message)) {
 		case "chop wood":
 			game.ChopWood(userId)
-			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
-			if err != nil {
-				log.Println("write:", err)
-			}
 		case "mine iron":
 			game.MineIron(userId)
-			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
-			if err != nil {
-				log.Println("write:", err)
-			}
 		case "mine coal":
 			game.MineCoal(userId)
-			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
-			if err != nil {
-				log.Println("write:", err)
-			}
 		case "place logger":
 			game.PlaceLogger(userId)
 			err := c.WriteMessage(1, []byte("Logger Placed"))

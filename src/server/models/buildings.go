@@ -34,7 +34,9 @@ func NewExtractor(name string, player *Player, node *ResourceNode) (Extractor, e
 			return extractor, errors.New(fmt.Sprintf("Insufficent materials"))
 		}
 	}
-
+	for resource, cost := range extractor.Cost {
+		player.Storage[resource] -= cost
+	}
 	extractor.Player = player
 	extractor.ResourceNode = node
 

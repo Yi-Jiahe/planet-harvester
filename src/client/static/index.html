@@ -7,7 +7,7 @@ window.addEventListener("load", function(evt) {
     var output = document.getElementById("output");
     var input = document.getElementById("input");
     var ws;
-    var userId;
+    var userId = "";
     var print = function(message) {
         var d = document.createElement("div");
         d.textContent = message;
@@ -27,10 +27,15 @@ window.addEventListener("load", function(evt) {
         }
         const url = "http://localhost:8080/login";
         xmlHttp.open("GET", url, true);
-        if (userId != null) {
+        if (userId != "") {
             xmlHttp.setRequestHeader("User-Id", userId);
         }
         xmlHttp.send();
+
+        if(ws) {
+            ws.send("userId:" + userId);
+        }
+
         return false;
     };
     document.getElementById("open").onclick = function(evt) {
