@@ -49,6 +49,8 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	if game.PlayerExists(userId) {
 		// Send a positive response?
+		// TODO: Currently because of lack of persistence, existing player ids can be lost
+		// Once persistence is up, there should be no problem
 	} else {
 		userId = game.NewPlayer()
 
@@ -76,7 +78,7 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		for {
 			<-ticker.C
-			if userId == "" {
+			if !game.PlayerExists(userId) {
 				continue
 			}
 			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
@@ -93,7 +95,7 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("recv: %s", message)
 
-		if userId == "" {
+		if !game.PlayerExists(userId) {
 			if strings.HasPrefix(string(message), "userId") {
 				userId = strings.Split(string(message), ":")[1]
 			} else {
@@ -113,8 +115,15 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 		case "mine coal":
 			game.MineCoal(userId)
 		case "place logger":
-			game.PlaceLogger(userId)
-			err := c.WriteMessage(1, []byte("Logger Placed"))
+			err := game.PlaceLogger(userId)
+			if err != nil {
+				err = c.WriteMessage(1, []byte(err.Error()))
+				if err != nil {
+					log.Println("write:", err)
+				}
+				continue
+			}
+			err = c.WriteMessage(1, []byte("Logger Placed"))
 			if err != nil {
 				log.Println("write:", err)
 			}

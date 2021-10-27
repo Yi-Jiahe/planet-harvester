@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"fmt"
+	"log"
 )
 
 type Extractor struct {
@@ -18,9 +18,8 @@ func (e *Extractor) Extract() {
 }
 
 var extractors = map[string]Extractor{
-	"Logger": {
-		Resource: Wood,
-		Rate:     0.1,
+	"logger": {
+		Rate: 0.1,
 		Cost: map[Resource]float64{
 			Wood: 10,
 		},
@@ -28,10 +27,16 @@ var extractors = map[string]Extractor{
 }
 
 func NewExtractor(name string, player *Player, node *ResourceNode) (Extractor, error) {
-	extractor := extractors[name]
+	extractor, ok := extractors[name]
+	if !ok {
+		return extractor, errors.New("Name not in extractors")
+	}
+
+	log.Println(extractor)
 	for resource, cost := range extractor.Cost {
+		log.Println(resource)
 		if player.Storage[resource] < cost {
-			return extractor, errors.New(fmt.Sprintf("Insufficent materials"))
+			return extractor, errors.New("Insufficent materials")
 		}
 	}
 	for resource, cost := range extractor.Cost {
@@ -39,6 +44,7 @@ func NewExtractor(name string, player *Player, node *ResourceNode) (Extractor, e
 	}
 	extractor.Player = player
 	extractor.ResourceNode = node
+	extractor.Resource = node.Resource
 
 	return extractor, nil
 }
