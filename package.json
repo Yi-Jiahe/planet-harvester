@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "jose": "^4.1.2",
     "parcel": "^2.0.0"
   },
   "scripts": {
