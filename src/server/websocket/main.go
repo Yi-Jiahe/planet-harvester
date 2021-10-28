@@ -10,6 +10,7 @@ import (
 	"github.com/Yi-Jiahe/planet-harvester/src/server/game"
 	"github.com/gorilla/websocket"
 	_ "github.com/joho/godotenv/autoload"
+	"google.golang.org/api/idtoken"
 )
 
 var upgrader = websocket.Upgrader{}
@@ -27,35 +28,41 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/login", handleLogin)
+	http.HandleFunc("/google-login", handleGoogleLogin)
 	http.HandleFunc("/socket", handleSocket)
 	hostname := os.Getenv("HOST")
 	log.Println(hostname)
 	log.Fatal(http.ListenAndServe(hostname, nil))
 }
 
-func handleLogin(w http.ResponseWriter, r *http.Request) {
-	// TODO: Figure out what to put here
+func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "User-Id")
 	w.Header().Set("Access-Control-Expose-Headers", "User-Id")
 
-	userId := r.Header.Get("User-Id")
-	if userId == "" {
-		userId = game.NewPlayer()
-
-		w.Header().Set("User-Id", userId)
-		return
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
 	}
-	if game.PlayerExists(userId) {
-		// Send a positive response?
-		// TODO: Currently because of lack of persistence, existing player ids can be lost
-		// Once persistence is up, there should be no problem
-	} else {
-		userId = game.NewPlayer()
 
+	token := r.FormValue("credential")
+
+	validator, err := idtoken.NewValidator(r.Context())
+	if err != nil {
+		log.Println(err)
+	}
+
+	payload, err := validator.Validate(r.Context(), token, "1089484973261-qsvvlihbqof12s2rgqdi6crtnk92svqi.apps.googleusercontent.com")
+	if err != nil {
+		log.Println(err)
+	}
+
+	if payload != nil {
+		email := payload.Claims["email"].(string)
+		userId := game.GetUser(email)
+		if userId == "" {
+			userId = game.NewUser(email)
+		}
 		w.Header().Set("User-Id", userId)
-		return
 	}
 }
 

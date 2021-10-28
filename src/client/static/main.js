@@ -1,7 +1,3 @@
-import jwt_decode from "jwt-decode";
-
-const google = window.default_gsi;
-
 var output = document.getElementById("output");
 var input = document.getElementById("input");
 var ws;
@@ -15,35 +11,29 @@ var print = function (message) {
 };
 
 window.handleCredentialResponse = function handleCredentialResponse(response) {
-    console.log("Encoded JWT ID token: " + response.credential);
-    const credentials = jwt_decode(response.credential);
-    console.log(credentials);
-}
-
-document.getElementById("login").onclick = function (evt) {
     const xmlHttp = new XMLHttpRequest();
+
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            var newUser = this.getResponseHeader("User-Id");
-            if (newUser) {
-                console.log("New session created");
-                userId = newUser;
+            const returnedUser = this.getResponseHeader("User-Id");
+            if (returnedUser) {
+                console.log("Logged in as player " + returnedUser);
+                userId = returnedUser;
+
+                if (ws) {
+                    ws.send("userId:" + userId);
+                }
+            } else {
+                console.log("Login failed");
             }
         }
     }
-    const url = "http://localhost:8080/login";
-    xmlHttp.open("GET", url, true);
-    if (userId != "") {
-        xmlHttp.setRequestHeader("User-Id", userId);
-    }
-    xmlHttp.send();
-
-    if (ws) {
-        ws.send("userId:" + userId);
-    }
-
-    return false;
+    const url = "http://localhost:8080/google-login";
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xmlHttp.send("credential="+response.credential);
 };
+
 document.getElementById("open").onclick = function (evt) {
     if (ws) {
         return false;

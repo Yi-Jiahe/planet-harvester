@@ -10,6 +10,7 @@ import (
 )
 
 var (
+	users         = map[string]string{}
 	players       = map[string]*models.Player{}
 	resourceNodes = []models.ResourceNode{
 		models.NewTree(),
@@ -46,10 +47,24 @@ func NewPlayer() string {
 }
 
 func PlayerExists(userId string) bool {
-	if _, ok := players[userId]; ok {
-		return true
+	_, exists := players[userId]
+
+	return exists
+}
+
+func GetUser(email string) string {
+	if userId, exists := users[email]; exists {
+		return userId
 	}
-	return false
+
+	return ""
+}
+
+func NewUser(email string) string {
+	userId := NewPlayer()
+	users[email] = userId
+
+	return userId
 }
 
 func ChopWood(userId string) {
