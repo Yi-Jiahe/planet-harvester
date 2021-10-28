@@ -17,4 +17,4 @@ For greatest accessibilty, the websocket protocol is currently supported to allo
 ## Client
 |Feature|Browser|
 |:------|:-----:|
-|Login  |:heavy_check_mark|
+|Login  |:heavy_check_mark:|
