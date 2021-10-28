@@ -1,16 +1,25 @@
-function handleCredentialResponse(response){
-    console.log(response.credential);
-};
+import jwt_decode from "jwt-decode";
+
+const google = window.default_gsi;
+
 var output = document.getElementById("output");
 var input = document.getElementById("input");
 var ws;
 var userId = "";
+
 var print = function (message) {
     var d = document.createElement("div");
     d.textContent = message;
     output.appendChild(d);
     output.scroll(0, output.scrollHeight);
 };
+
+window.handleCredentialResponse = function handleCredentialResponse(response) {
+    console.log("Encoded JWT ID token: " + response.credential);
+    const credentials = jwt_decode(response.credential);
+    console.log(credentials);
+}
+
 document.getElementById("login").onclick = function (evt) {
     const xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {

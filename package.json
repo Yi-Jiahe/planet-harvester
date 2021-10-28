@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "jose": "^4.1.2",
+    "googleapis": "^89.0.0",
+    "jwt-decode": "^3.1.2",
     "parcel": "^2.0.0"
   },
   "scripts": {
