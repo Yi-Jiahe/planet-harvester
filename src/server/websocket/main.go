@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -37,32 +39,27 @@ func main() {
 
 func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Expose-Headers", "User-Id")
 
 	err := r.ParseForm()
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	token := r.FormValue("credential")
 
-	validator, err := idtoken.NewValidator(r.Context())
+	email, err := validatejwt(r.Context(), token)
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(http.StatusForbidden)
 	}
 
-	payload, err := validator.Validate(r.Context(), token, "1089484973261-qsvvlihbqof12s2rgqdi6crtnk92svqi.apps.googleusercontent.com")
-	if err != nil {
-		log.Println(err)
-	}
-
-	if payload != nil {
-		email := payload.Claims["email"].(string)
+	if email != "" {
 		userId := game.GetUser(email)
 		if userId == "" {
 			userId = game.NewUser(email)
 		}
-		w.Header().Set("User-Id", userId)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -103,8 +100,15 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 		log.Printf("recv: %s", message)
 
 		if !game.PlayerExists(userId) {
-			if strings.HasPrefix(string(message), "userId") {
-				userId = strings.Split(string(message), ":")[1]
+			if strings.HasPrefix(string(message), "jwt") {
+				token := strings.Split(string(message), ":")[1]
+				email, err := validatejwt(r.Context(), token)
+				if err != nil {
+					log.Println(err)
+				}
+				if email != "" {
+					userId = game.GetUser(email)
+				}
 			} else {
 				err := c.WriteMessage(1, []byte("Please provide login"))
 				if err != nil {
@@ -136,4 +140,23 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func validatejwt(ctx context.Context, token string) (string, error) {
+	validator, err := idtoken.NewValidator(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	payload, err := validator.Validate(ctx, token, "1089484973261-qsvvlihbqof12s2rgqdi6crtnk92svqi.apps.googleusercontent.com")
+	if err != nil {
+		return "", err
+	}
+
+	if payload != nil {
+		email := payload.Claims["email"].(string)
+		return email, nil
+	}
+
+	return "", errors.New("Something went wrong")
 }

@@ -1,7 +1,7 @@
 var output = document.getElementById("output");
 var input = document.getElementById("input");
 var ws;
-var userId = "";
+var jwt;
 
 var print = function (message) {
     var d = document.createElement("div");
@@ -11,27 +11,26 @@ var print = function (message) {
 };
 
 window.handleCredentialResponse = function handleCredentialResponse(response) {
+    jwt = response.credential;
+
+    if (ws) {
+        ws.send("jwt:" + jwt);
+    }
+
     const xmlHttp = new XMLHttpRequest();
-
     xmlHttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            const returnedUser = this.getResponseHeader("User-Id");
-            if (returnedUser) {
-                console.log("Logged in as player " + returnedUser);
-                userId = returnedUser;
-
-                if (ws) {
-                    ws.send("userId:" + userId);
-                }
-            } else {
-                console.log("Login failed");
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                console.log("Logged in");
+            } else if (this.status == 403) {
+                console.log("Log in error");
             }
         }
     }
     const url = "http://localhost:8080/google-login";
     xmlHttp.open("POST", url, true);
     xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xmlHttp.send("credential="+response.credential);
+    xmlHttp.send("credential="+jwt);
 };
 
 document.getElementById("open").onclick = function (evt) {
@@ -40,7 +39,7 @@ document.getElementById("open").onclick = function (evt) {
     }
     ws = new WebSocket("ws://localhost:8080/socket");
     ws.onopen = function (evt) {
-        ws.send("userId:" + userId);
+        ws.send("jwt:" + jwt);
 
         print("OPEN");
     }
@@ -56,6 +55,7 @@ document.getElementById("open").onclick = function (evt) {
     }
     return false;
 };
+
 document.getElementById("send").onclick = function (evt) {
     if (!ws) {
         return false;
@@ -64,6 +64,7 @@ document.getElementById("send").onclick = function (evt) {
     ws.send(input.value);
     return false;
 };
+
 document.getElementById("close").onclick = function (evt) {
     if (!ws) {
         return false;
