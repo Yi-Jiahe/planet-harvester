@@ -1,0 +1,21 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  websocket-server:
+    build: ./server
+    ports:
+      - "8080:8080"
+    environment:
+      # Replace with productionn server host
+      - PORT=:8080
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/planet-extractor-service-account
+      - AUDIENCE=1089484973261-qsvvlihbqof12s2rgqdi6crtnk92svqi.apps.googleusercontent.com
+    secrets:
+      - planet-extractor-service-account
+  webclient:
+    build: ./client
+    ports:
+      - "1234:1234"
+
+secrets:
+   planet-extractor-service-account:
+     file: secrets/planet-extractor-service-account.json

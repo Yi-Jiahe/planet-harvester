@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Yi-Jiahe/planet-harvester/src/server/models"
+	"github.com/Yi-Jiahe/planet-harvester/src/models"
 
 	"github.com/rs/xid"
 )

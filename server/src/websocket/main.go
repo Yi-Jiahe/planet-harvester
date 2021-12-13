@@ -8,8 +8,9 @@ import (
 	"os"
 	"strings"
 	"time"
+	"fmt"
 
-	"github.com/Yi-Jiahe/planet-harvester/src/server/game"
+	"github.com/Yi-Jiahe/planet-harvester/src/game"
 	"github.com/gorilla/websocket"
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/api/idtoken"
@@ -32,9 +33,9 @@ func init() {
 func main() {
 	http.HandleFunc("/google-login", handleGoogleLogin)
 	http.HandleFunc("/socket", handleSocket)
-	hostname := os.Getenv("HOST")
-	log.Println(hostname)
-	log.Fatal(http.ListenAndServe(hostname, nil))
+	port := os.Getenv("PORT")
+	log.Println(fmt.Sprintf("Listening on %s...", port))
+	log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +89,7 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 			err := c.WriteMessage(1, []byte(game.ShowResources(userId)))
 			if err != nil {
 				log.Println("write:", err)
+				return
 			}
 		}
 	}()
@@ -143,12 +145,14 @@ func handleSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func validatejwt(ctx context.Context, token string) (string, error) {
+	audience := os.Getenv("AUDIENCE")
+
 	validator, err := idtoken.NewValidator(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	payload, err := validator.Validate(ctx, token, "1089484973261-qsvvlihbqof12s2rgqdi6crtnk92svqi.apps.googleusercontent.com")
+	payload, err := validator.Validate(ctx, token, audience)
 	if err != nil {
 		return "", err
 	}

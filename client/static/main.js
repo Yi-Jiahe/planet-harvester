@@ -3,6 +3,11 @@ var input = document.getElementById("input");
 var ws;
 var jwt;
 
+const protocol = "http:";
+const hostname = "localhost";
+const port = "8080";
+const server_base_url = new URL(`${protocol}//${hostname}:${port}`)
+
 var print = function (message) {
     var d = document.createElement("div");
     d.textContent = message;
@@ -27,7 +32,7 @@ window.handleCredentialResponse = function handleCredentialResponse(response) {
             }
         }
     }
-    const url = "http://localhost:8080/google-login";
+    const url = `${server_base_url.origin}/google-login`;
     xmlHttp.open("POST", url, true);
     xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xmlHttp.send("credential="+jwt);
@@ -37,7 +42,7 @@ document.getElementById("open").onclick = function (evt) {
     if (ws) {
         return false;
     }
-    ws = new WebSocket("ws://localhost:8080/socket");
+    ws = new WebSocket(`ws://${server_base_url.host}/socket`);
     ws.onopen = function (evt) {
         ws.send("jwt:" + jwt);
 

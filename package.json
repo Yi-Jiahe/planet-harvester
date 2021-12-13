@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "googleapis": "^89.0.0",
-    "parcel": "^2.0.0"
-  },
-  "scripts": {
-    "parcel": "parcel src/client/static/index.html"
-  }
-}

@@ -1,8 +1,2 @@
-/bin
-/dist
-
-/.parcel-cache
-
-/node_modules
-
 .env
+secrets/
